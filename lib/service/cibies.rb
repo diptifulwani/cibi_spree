@@ -66,4 +66,21 @@ class Cibies
 			return false
 		end
   	end
+
+  	def query_data(data)
+  		url = "#{Cibies::URL}/#{@index}/#{type_name}/_search"
+  		curl = Curl::Easy.http_post(url, data) do |c|
+			c.headers['Content-type'] = 'text/json'
+			c.timeout = 300
+		end
+
+		if (curl.response_code != 200 && curl.response_code != 201) || JSON.parse(curl.body_str)["errors"] == true
+			msg=curl.body_str
+			curl.close unless curl.nil?
+			puts "Curl Returned an error response code. #{curl.body_str}"
+			Rails.logger.error "Curl Returned an error response code"
+			return msg
+		end
+		result = JSON::parse(curl.body_str)
+  	end
 end
